@@ -6,7 +6,7 @@
 /*   By: ndillon <ndillon@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/29 14:47:39 by ndillon           #+#    #+#             */
-/*   Updated: 2022/03/29 17:52:06 by ndillon          ###   ########.fr       */
+/*   Updated: 2022/03/29 21:22:17 by ndillon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,11 +19,6 @@
 # include <stdlib.h>
 # include <pthread.h>
 
-typedef struct s_forks
-{
-	pthread_mutex_t	*forks;
-}	t_forks;
-
 typedef struct s_philo
 {
 	int 	id;
@@ -33,7 +28,7 @@ typedef struct s_philo
 	int		is_endless;
 	int		left_fork;
 	int		right_fork;
-	pthread_mutex_t	*forks;
+	pthread_mutex_t	**forks;
 }	t_philo;
 
 typedef struct s_philos_info
@@ -45,7 +40,7 @@ typedef struct s_philos_info
 	int			is_endless;
 	t_philo		**philo;
 	pthread_t	*tread;
-	pthread_mutex_t	*forks;
+	pthread_mutex_t	**forks;
 }	t_philos_info;
 
 void			custom_usleep(int ms);
