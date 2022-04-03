@@ -6,7 +6,7 @@
 /*   By: ndillon <ndillon@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/29 17:26:19 by ndillon           #+#    #+#             */
-/*   Updated: 2022/03/29 21:43:17 by ndillon          ###   ########.fr       */
+/*   Updated: 2022/04/03 07:07:54 by ndillon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,15 +29,23 @@ void	initialization_forks(t_philos_info *philos)
 void	initialization_philos(t_philos_info *philos)
 {
 	int	i;
+	t_c_info	*c_info;
 
+	c_info = (t_c_info *)malloc(sizeof(t_c_info));
+	c_info->time_to_die = philos->time_to_die;
+	c_info->time_to_eat = philos->time_to_eat;
+	c_info->time_to_sleep = philos->time_to_sleep;
+	c_info->is_endless = philos->is_endless;
+	c_info->forks = philos->forks;
+	c_info->death = 0;
 	philos->philo = (t_philo **)malloc(philos->number_of_philosophers * sizeof(t_philo *));
 	i = 0;
 	while (i < philos->number_of_philosophers)
 	{
-		write(1, "h\n", 2);
+		//write(1, "h\n", 2);
 		philos->philo[i] = (t_philo *)malloc(sizeof(t_philo));
 		philos->philo[i]->id = i + 1;
-		printf("id - %d\n", philos->philo[i]->id);
+		//printf("id - %d\n", philos->philo[i]->id);
 		if (i == 0)
 			philos->philo[i]->left_fork = philos->number_of_philosophers - 1;
 		else
@@ -45,11 +53,7 @@ void	initialization_philos(t_philos_info *philos)
 		if (philos->number_of_philosophers == 1)
 			philos->philo[i]->left_fork = -1;
 		philos->philo[i]->right_fork = i;		
-		philos->philo[i]->time_to_die = philos->time_to_die;
-		philos->philo[i]->time_to_eat = philos->time_to_eat;
-		philos->philo[i]->time_to_sleep = philos->time_to_sleep;
-		philos->philo[i]->is_endless = philos->is_endless;
-		philos->philo[i]->forks = philos->forks;
+		philos->philo[i]->c_info = c_info;
 		i++;
 	}
 }

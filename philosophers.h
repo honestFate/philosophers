@@ -6,7 +6,7 @@
 /*   By: ndillon <ndillon@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/29 14:47:39 by ndillon           #+#    #+#             */
-/*   Updated: 2022/03/29 21:22:17 by ndillon          ###   ########.fr       */
+/*   Updated: 2022/04/03 07:33:21 by ndillon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,16 +19,26 @@
 # include <stdlib.h>
 # include <pthread.h>
 
-typedef struct s_philo
+typedef struct s_cummon_info
 {
-	int 	id;
+	int		death;
 	int		time_to_die;
 	int		time_to_eat;
 	int		time_to_sleep;
 	int		is_endless;
-	int		left_fork;
-	int		right_fork;
+	pthread_mutex_t	*print;
+	pthread_mutex_t	*meal;
+	pthread_mutex_t	*forks_availability;
 	pthread_mutex_t	**forks;
+}	t_c_info;
+
+typedef struct s_philo
+{
+	int 		id;
+	int			left_fork;
+	int			right_fork;
+	int			eat_count;
+	t_c_info	*c_info;
 }	t_philo;
 
 typedef struct s_philos_info
@@ -51,5 +61,6 @@ void			initialization_forks(t_philos_info *philos);
 void			initialization_philos(t_philos_info *philos);
 t_philos_info	*initialization(int argc, char **argv);
 void			*start_routine(void *arg);
+long int		get_timestamp(void);
 
 #endif

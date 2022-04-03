@@ -6,7 +6,7 @@
 /*   By: ndillon <ndillon@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/29 17:27:40 by ndillon           #+#    #+#             */
-/*   Updated: 2022/03/29 21:34:58 by ndillon          ###   ########.fr       */
+/*   Updated: 2022/04/03 06:51:50 by ndillon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,8 +25,8 @@ void	custom_usleep(int ms)
 	i = 0;
 	while (i < ms)
 	{
-		usleep(100);
-		i += 100;
+		usleep(1000);
+		i += 1;
 	}
 }
 
@@ -76,4 +76,12 @@ int	arg_parser(char **args)
 		i++;
 	}
 	return (0);
+}
+
+long int	get_timestamp(void)
+{
+	struct timeval	t;
+
+	gettimeofday(&t, NULL);
+	return ((t.tv_sec * 1000) + (t.tv_usec / 1000));
 }
