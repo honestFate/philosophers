@@ -6,7 +6,7 @@
 /*   By: ndillon <ndillon@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/29 17:27:37 by ndillon           #+#    #+#             */
-/*   Updated: 2022/03/29 21:12:18 by ndillon          ###   ########.fr       */
+/*   Updated: 2022/04/12 20:16:04 by ndillon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,10 +25,12 @@ int main(int argc, char **argv)
 	if (!philos)
 		return (error("THREADS ZALUPA"));
 	i = 0;
-	while (i < philos->number_of_philosophers)
+	/*while (i < philos->number_of_philosophers)
 	{
+		write(1, "3\n", 2);
 		pthread_join(philos->tread[i], NULL);
-		write(1, "1", 1);
 		i++;
-	}
+	}*/
+	philo_check(philos);
+	write(1, "SUKA\n", 5);
 }

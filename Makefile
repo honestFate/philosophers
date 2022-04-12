@@ -7,7 +7,7 @@ CFLAGS = -Wall -Wextra -Werror
 NAME = philosophers
 
 SRCS =	$(SRC)philosophers.c $(SRC)initialization.c $(SRC)living.c \
-		$(SRC)utils.c
+		$(SRC)utils.c $(SRC)philo_check.c
 
 OBJS = $(SRCS:%.c=%.o)
 

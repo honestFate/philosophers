@@ -6,7 +6,7 @@
 /*   By: ndillon <ndillon@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/29 17:36:11 by ndillon           #+#    #+#             */
-/*   Updated: 2022/04/03 07:43:11 by ndillon          ###   ########.fr       */
+/*   Updated: 2022/04/12 20:09:00 by ndillon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,11 +19,9 @@ void	philo_sleep(t_philo *philo)
 	i = 0;
 	if (!philo->c_info->death)
 		return ;
-	while (i < philo->c_info->time_to_sleep)
-	{
+	status_print(philo, "sleep\n");
+	while (++i < philo->c_info->time_to_sleep)
 		custom_usleep(1);
-		i++;
-	}
 }
 
 void	status_print(t_philo *philo, char *status)
@@ -36,23 +34,28 @@ void	status_print(t_philo *philo, char *status)
 
 void	philo_eat(t_philo *philo)
 {
-	if (!philo->c_info->death)
-		return ;
+	write(1, "lock\n", 5);
 	pthread_mutex_lock(philo->c_info->forks_availability);
+	write(1, "eat\n", 4);
 	pthread_mutex_lock(philo->c_info->forks[philo->left_fork]);
-	status_print(philo, "taken a fork");
 	pthread_mutex_lock(philo->c_info->forks[philo->right_fork]);
-	status_print(philo, "taken a fork");
+	pthread_mutex_unlock(philo->c_info->forks_availability);
+	pthread_mutex_lock(philo->c_info->meal);
+	if (philo->c_info->death)
+		return ;
+	philo->last_meal = get_timestamp();
+	philo->meal_count++;
+	pthread_mutex_unlock(philo->c_info->meal);
+	status_print(philo, "taken a forks");
 	pthread_mutex_unlock(philo->c_info->forks_availability);
 	pthread_mutex_lock(philo->c_info->meal);
 	status_print(philo, "start eating");
 	custom_usleep(philo->c_info->time_to_sleep);
 	status_print(philo, "end eating");
-	pthread_mutex_unlock(philo->c_info->meal);
 	pthread_mutex_unlock(philo->c_info->forks[philo->left_fork]);
-	status_print(philo, "put a fork");
 	pthread_mutex_unlock(philo->c_info->forks[philo->right_fork]);	
-	status_print(philo, "put a fork");
+	status_print(philo, "put a forks");
+	write(1, "end\n", 4);
 }
 
 void	*start_routine(void *arg)
@@ -62,15 +65,16 @@ void	*start_routine(void *arg)
 
 	philo = arg;
 	i = 1;
-	printf("philo %d\n", philo->id);
-	while (i)
+	printf("philo %d active\n", philo->id);
+	philo->last_meal = get_timestamp();
+	if (philo->id % 2 == 0)
+		custom_usleep(philo->c_info->time_to_eat);
+	while (1)
 	{
-		printf("start eating %d\n", philo->id);
-		printf("end eating\n");
-		if (philo->c_info->is_endless == i)
-			printf("LETS CELEBRATE AND SUCK SOME DICK\n");
-		i++;
-		usleep(10000000);
+		status_print(philo, "thinking\n");
+		philo_eat(philo);
+		write(1, "1\n", 2);
+		philo_sleep(philo);
 	}
 	return NULL;
 }
