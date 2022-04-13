@@ -6,7 +6,7 @@
 /*   By: ndillon <ndillon@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/29 17:27:37 by ndillon           #+#    #+#             */
-/*   Updated: 2022/04/12 20:16:04 by ndillon          ###   ########.fr       */
+/*   Updated: 2022/04/13 20:23:50 by ndillon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@ int main(int argc, char **argv)
 {
 	int				i;
 	t_philos_info	*philos;
+	pthread_t		checker;
 	char	**man;
 
 	man = malloc(sizeof(1));
@@ -23,14 +24,14 @@ int main(int argc, char **argv)
 		return (error("INVALID ARGUMENTS"));
 	philos = initialization(argc, argv);
 	if (!philos)
-		return (error("THREADS ZALUPA"));
+		return (error("THREADS ERR"));
 	i = 0;
-	/*while (i < philos->number_of_philosophers)
+	pthread_create(&checker, NULL, philo_check, philos);
+	pthread_join(checker, NULL);
+	while (i < philos->number_of_philosophers)
 	{
-		write(1, "3\n", 2);
-		pthread_join(philos->tread[i], NULL);
+		pthread_join(philos->thread[i], NULL);
 		i++;
-	}*/
-	philo_check(philos);
-	write(1, "SUKA\n", 5);
+	}
+	free_all(philos);
 }

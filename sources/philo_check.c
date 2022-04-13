@@ -1,36 +1,35 @@
 #include "../philosophers.h"
 
-void	philo_check(t_philos_info *philo)
+void	*philo_check(void *data)
 {
 	int	i;
 	int	check;
+	t_philos_info	*philo;
 
+	philo = (t_philos_info *)data;
 	custom_usleep(1);
-	while (1)
+	while (!philo->philo[i]->c_info->death)
 	{
-		write(1, "check\n", 6);
 		i = 0;
 		check = 0;
-		pthread_mutex_lock(philo->philo[0]->c_info->meal);
-		pthread_mutex_lock(philo->philo[0]->c_info->print);
-		while (i < 5)
+		while (i < philo->number_of_philosophers)
 		{
-			if (get_timestamp() - philo->philo[i]->last_meal >= philo->time_to_die)
+			if (philo->philo[i]->last_meal &&
+				get_timestamp() - philo->philo[i]->last_meal > philo->time_to_die)
 			{
-				write(1, "dead\n", 5);
-				status_print(philo->philo[i], "dead end");
-				exit(1);
-				return ;
+				philo->philo[i]->c_info->death = 1;
+				printf("%ld %d dead\n", get_timestamp() - philo->philo[i]->c_info->time, i + 1);
+				return (NULL);
 			}
 			if (philo->philo[i]->meal_count >= philo->is_endless)
 				check++;
 			i++;
 		}
-		if (check == philo->number_of_philosophers)
-			return ;
-		pthread_mutex_unlock(philo->philo[0]->c_info->meal);
-		pthread_mutex_unlock(philo->philo[0]->c_info->print);
-		write(1, "check end\n", 10);
-		usleep(2000);
+		if (check == philo->number_of_philosophers && philo->is_endless)
+		{
+			philo->philo[i]->c_info->death = 1;
+			return (NULL);
+		}
+		custom_usleep(1);
 	}
 }

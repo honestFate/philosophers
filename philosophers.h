@@ -6,7 +6,7 @@
 /*   By: ndillon <ndillon@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/29 14:47:39 by ndillon           #+#    #+#             */
-/*   Updated: 2022/04/12 19:57:32 by ndillon          ###   ########.fr       */
+/*   Updated: 2022/04/13 20:22:20 by ndillon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,9 +25,7 @@ typedef struct s_cummon_info
 	int		time_to_die;
 	int		time_to_eat;
 	int		time_to_sleep;
-	pthread_mutex_t	*print;
-	pthread_mutex_t	*meal;
-	pthread_mutex_t	*forks_availability;
+	long int	time;
 	pthread_mutex_t	**forks;
 }	t_c_info;
 
@@ -49,7 +47,7 @@ typedef struct s_philos_info
 	int			time_to_sleep;
 	int			is_endless;
 	t_philo		**philo;
-	pthread_t	*tread;
+	pthread_t	*thread;
 	pthread_mutex_t	**forks;
 }	t_philos_info;
 
@@ -62,7 +60,11 @@ void			initialization_philos(t_philos_info *philos);
 t_philos_info	*initialization(int argc, char **argv);
 void			*start_routine(void *arg);
 long int		get_timestamp(void);
-void			philo_check(t_philos_info *philo);
-void	status_print(t_philo *philo, char *status);
+void			*philo_check(void *philo);
+void			status_print(t_philo *philo, char *status, long int time);
+char	*putnbr_str(char *str, int n);
+void	putstr_str(char *str, char *text);
+void	putstr_fd(char *s, int fd);
+void    free_all(t_philos_info *philos);
 
 #endif

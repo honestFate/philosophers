@@ -6,7 +6,7 @@
 /*   By: ndillon <ndillon@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/29 17:26:19 by ndillon           #+#    #+#             */
-/*   Updated: 2022/04/12 20:01:05 by ndillon          ###   ########.fr       */
+/*   Updated: 2022/04/13 20:24:30 by ndillon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,12 +37,7 @@ void	initialization_philos(t_philos_info *philos)
 	c_info->time_to_sleep = philos->time_to_sleep;
 	c_info->forks = philos->forks;
 	c_info->death = 0;
-	c_info->print = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
-	pthread_mutex_init(c_info->print, NULL);
-	c_info->meal = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
-	pthread_mutex_init(c_info->meal, NULL);
-	c_info->forks_availability = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
-	pthread_mutex_init(c_info->forks_availability, NULL);
+	c_info->time = get_timestamp();
 	philos->philo = (t_philo **)malloc(philos->number_of_philosophers * sizeof(t_philo *));
 	i = 0;
 	while (i < philos->number_of_philosophers)
@@ -50,7 +45,7 @@ void	initialization_philos(t_philos_info *philos)
 		philos->philo[i] = (t_philo *)malloc(sizeof(t_philo));
 		philos->philo[i]->id = i + 1;
 		philos->philo[i]->meal_count = 0;
-		//printf("id - %d\n", philos->philo[i]->id);
+		philos->philo[i]->last_meal = 0;
 		if (i == 0)
 			philos->philo[i]->left_fork = philos->number_of_philosophers - 1;
 		else
@@ -66,6 +61,7 @@ void	initialization_philos(t_philos_info *philos)
 t_philos_info	*initialization(int argc, char **argv)
 {
 	int				i;
+	int				t_err;
 	t_philos_info	*philos;
 
 	philos = (t_philos_info *)malloc(sizeof(t_philos_info));
@@ -77,18 +73,17 @@ t_philos_info	*initialization(int argc, char **argv)
 		philos->is_endless = ft_atoi(argv[5]);
 	else
 		philos->is_endless = 0;
-	printf("Количество философов - %d\n", philos->number_of_philosophers);
-	printf("Время до смерти - %d\n", philos->time_to_die);
-	printf("Время на обед - %d\n", philos->time_to_eat);
-	printf("Время на сон - %d\n", philos->time_to_sleep);
-	printf("обедов до окончания симуляции - %d\n", philos->is_endless);
 	initialization_forks(philos);
 	initialization_philos(philos);
-	philos->tread = (pthread_t *)malloc(sizeof(pthread_t));
+	philos->thread = (pthread_t *)malloc(sizeof(pthread_t));
 	i = 0;
 	while (i < philos->number_of_philosophers)
 	{
-		pthread_create(&philos->tread[i], NULL, start_routine, philos->philo[i]);
+		if (pthread_create(&philos->thread[i], NULL, start_routine, philos->philo[i]))
+		{
+			free_all(philos);
+			return (NULL);
+		}
 		i++;
 	}
 	return (philos);

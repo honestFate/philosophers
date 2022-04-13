@@ -6,7 +6,7 @@
 /*   By: ndillon <ndillon@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/29 17:27:40 by ndillon           #+#    #+#             */
-/*   Updated: 2022/04/03 06:51:50 by ndillon          ###   ########.fr       */
+/*   Updated: 2022/04/13 17:58:22 by ndillon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,14 +20,11 @@ int	error(const char *err_msg)
 
 void	custom_usleep(int ms)
 {
-	int	i;
+	long int	time;
 
-	i = 0;
-	while (i < ms)
-	{
-		usleep(1000);
-		i += 1;
-	}
+	time = get_timestamp();
+	while (time + ms >= get_timestamp())
+		usleep(100);
 }
 
 int	ft_atoi(const char *str)
@@ -84,4 +81,63 @@ long int	get_timestamp(void)
 
 	gettimeofday(&t, NULL);
 	return ((t.tv_sec * 1000) + (t.tv_usec / 1000));
+}
+
+int	nbr_len(int n)
+{
+	int	len;
+
+	len = 0;
+	if (!n)
+		return (1);
+	while (n)
+	{
+		n /= 10;
+		++len;
+	}
+	return (len);
+}
+
+char	*putnbr_str(char *str, int n)
+{
+	int			end;
+	int			len;
+	long long	x;
+
+	x = n;
+	if (!x)
+	{
+		*str = '0';
+		return (str);
+	}
+	len = nbr_len(x);
+	end = len;
+	while (len--)
+	{
+		str[len] = x % 10 + '0';
+		x /= 10;
+	}
+	return (str + end);
+}
+
+void	putstr_str(char *str, char *text)
+{
+	while (*text)
+	{
+		*str = *text;
+		++str;
+		++text;
+	}
+	*str = '\n';
+	str++;
+	*str = '\0';
+}
+
+void	putstr_fd(char *s, int fd)
+{
+	if (s)
+	{
+		while (*s)
+			write(fd, s++, 1);
+	}
 }
