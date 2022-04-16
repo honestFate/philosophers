@@ -6,29 +6,56 @@
 /*   By: ndillon <ndillon@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/29 17:26:19 by ndillon           #+#    #+#             */
-/*   Updated: 2022/04/13 20:24:30 by ndillon          ###   ########.fr       */
+/*   Updated: 2022/04/16 18:21:31 by ndillon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../philosophers.h"
 
-void	initialization_forks(t_philos_info *philos)
+int	initialization_forks(t_philos_info *philos)
 {
 	int	i;
 
 	i = 0;
-	philos->forks = (pthread_mutex_t **)malloc(sizeof(pthread_mutex_t *));
+	philos->forks = (pthread_mutex_t *)malloc(philos->number_of_philosophers
+			* sizeof(pthread_mutex_t));
 	while (i < philos->number_of_philosophers)
 	{
-		philos->forks[i] = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
-		pthread_mutex_init(philos->forks[i], NULL);
+		if (pthread_mutex_init(&philos->forks[i], NULL))
+		{
+			free(philos->forks);
+			return (ERROR);
+		}
+		i++;
+	}
+	return (OK);
+}
+
+void	initialization_philos(t_philos_info *philos, t_c_info *c_info)
+{
+	int	i;
+
+	philos->philo = (t_philo **)malloc(philos->number_of_philosophers
+			* sizeof(t_philo *));
+	i = 0;
+	while (i < philos->number_of_philosophers)
+	{
+		philos->philo[i] = (t_philo *)malloc(sizeof(t_philo));
+		philos->philo[i]->id = i + 1;
+		philos->philo[i]->meal_count = 0;
+		philos->philo[i]->last_meal = 0;
+		if (!i)
+			philos->philo[i]->left_fork = philos->number_of_philosophers - 1;
+		else
+			philos->philo[i]->left_fork = i - 1;
+		philos->philo[i]->right_fork = i;
+		philos->philo[i]->c_info = c_info;
 		i++;
 	}
 }
 
-void	initialization_philos(t_philos_info *philos)
+t_c_info	*cummon_info_init(t_philos_info *philos)
 {
-	int	i;
 	t_c_info	*c_info;
 
 	c_info = (t_c_info *)malloc(sizeof(t_c_info));
@@ -38,30 +65,28 @@ void	initialization_philos(t_philos_info *philos)
 	c_info->forks = philos->forks;
 	c_info->death = 0;
 	c_info->time = get_timestamp();
-	philos->philo = (t_philo **)malloc(philos->number_of_philosophers * sizeof(t_philo *));
+	return (c_info);
+}
+
+int	thread_start(t_philos_info *philos)
+{
+	int	i;
+
+	philos->thread = (pthread_t *)malloc(philos->number_of_philosophers
+			* sizeof(pthread_t));
 	i = 0;
 	while (i < philos->number_of_philosophers)
 	{
-		philos->philo[i] = (t_philo *)malloc(sizeof(t_philo));
-		philos->philo[i]->id = i + 1;
-		philos->philo[i]->meal_count = 0;
-		philos->philo[i]->last_meal = 0;
-		if (i == 0)
-			philos->philo[i]->left_fork = philos->number_of_philosophers - 1;
-		else
-			philos->philo[i]->left_fork = i - 1;
-		if (philos->number_of_philosophers == 1)
-			philos->philo[i]->left_fork = -1;
-		philos->philo[i]->right_fork = i;
-		philos->philo[i]->c_info = c_info;
+		if (pthread_create(&philos->thread[i], NULL,
+				start_routine, philos->philo[i]))
+			return (ERROR);
 		i++;
 	}
+	return (OK);
 }
 
 t_philos_info	*initialization(int argc, char **argv)
 {
-	int				i;
-	int				t_err;
 	t_philos_info	*philos;
 
 	philos = (t_philos_info *)malloc(sizeof(t_philos_info));
@@ -73,18 +98,16 @@ t_philos_info	*initialization(int argc, char **argv)
 		philos->is_endless = ft_atoi(argv[5]);
 	else
 		philos->is_endless = 0;
-	initialization_forks(philos);
-	initialization_philos(philos);
-	philos->thread = (pthread_t *)malloc(sizeof(pthread_t));
-	i = 0;
-	while (i < philos->number_of_philosophers)
+	if (initialization_forks(philos))
 	{
-		if (pthread_create(&philos->thread[i], NULL, start_routine, philos->philo[i]))
-		{
-			free_all(philos);
-			return (NULL);
-		}
-		i++;
+		free(philos);
+		return (NULL);
+	}
+	initialization_philos(philos, cummon_info_init(philos));
+	if (thread_start(philos))
+	{
+		free_all(philos);
+		return (NULL);
 	}
 	return (philos);
 }

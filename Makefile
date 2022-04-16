@@ -1,30 +1,31 @@
 CC = gcc
 INC = .
 SRC = ./sources/
-INCLUDES = philosophers.h
+C		= gcc
 CFLAGS = -Wall -Wextra -Werror
+INCLUDES = philosophers.h
 
-NAME = philosophers
+NAME = philo
 
-SRCS =	$(SRC)philosophers.c $(SRC)initialization.c $(SRC)living.c \
-		$(SRC)utils.c $(SRC)philo_check.c
+SRCS =	philosophers.c initialization.c living.c \
+		utils.c philo_check.c free_at_exit.c
 
-OBJS = $(SRCS:%.c=%.o)
+OBJS	= $(SRCS:%.c=%.o)
 
-all: $(NAME)
-
-%.o: 
-	${CC} ${CFLAGS} -c -I${INC} $(@:%.o=%.c) -o $@
+all:	$(NAME)
 
 $(NAME): $(OBJS)
-	${CC} ${CFLAGS} -I${INC} -o ${NAME} $?
+	$(CC) -o $(NAME) $(OBJS) $(CFLAGS) -I$(INC)
 
-clean:
-	$(RM) $(OBJS)
+%.o: $(SRC)%.c $(INCLUDES)
+	$(CC) $(CFLAGS) -c $<
 
-fclean: clean
-	$(RM) $(NAME)
+clean:	
+		rm -rf ${OBJS}
+
+fclean:	clean
+		rm -rf $(NAME)
 
 re: clean all
 
-.PHONY : all clean fclean re
+.PHONY:	all clean fclean re

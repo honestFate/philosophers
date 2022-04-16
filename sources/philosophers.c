@@ -6,32 +6,30 @@
 /*   By: ndillon <ndillon@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/29 17:27:37 by ndillon           #+#    #+#             */
-/*   Updated: 2022/04/13 20:23:50 by ndillon          ###   ########.fr       */
+/*   Updated: 2022/04/16 18:15:17 by ndillon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../philosophers.h"
 
-int main(int argc, char **argv)
+int	error(const char *err_msg)
 {
-	int				i;
-	t_philos_info	*philos;
-	pthread_t		checker;
-	char	**man;
+	while (*err_msg)
+		write(2, err_msg++, 1);
+	write(2, "\n", 1);
+	return (ERROR);
+}
 
-	man = malloc(sizeof(1));
-    if (argc < 5 || argc > 6 || arg_parser(argv))
+int	main(int argc, char **argv)
+{
+	t_philos_info	*philos;
+
+	if (argc < 5 || argc > 6 || arg_parser(argv))
 		return (error("INVALID ARGUMENTS"));
 	philos = initialization(argc, argv);
 	if (!philos)
-		return (error("THREADS ERR"));
-	i = 0;
-	pthread_create(&checker, NULL, philo_check, philos);
-	pthread_join(checker, NULL);
-	while (i < philos->number_of_philosophers)
-	{
-		pthread_join(philos->thread[i], NULL);
-		i++;
-	}
+		return (error("INITIALIZATION ERR"));
+	philo_start_checker(philos);
 	free_all(philos);
+	return (0);
 }

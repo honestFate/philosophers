@@ -6,17 +6,11 @@
 /*   By: ndillon <ndillon@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/29 17:27:40 by ndillon           #+#    #+#             */
-/*   Updated: 2022/04/13 17:58:22 by ndillon          ###   ########.fr       */
+/*   Updated: 2022/04/16 17:06:04 by ndillon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../philosophers.h"
-
-int	error(const char *err_msg)
-{
-	printf("%s", err_msg);
-	return (1);
-}
 
 void	custom_usleep(int ms)
 {
@@ -59,20 +53,28 @@ int	arg_parser(char **args)
 {
 	int	i;
 	int	j;
+	int	zero_flag;
 
 	i = 1;
 	while (args[i])
 	{
+		if (ft_minmax_int(args[i]))
+			return (ERROR);
 		j = 0;
+		zero_flag = 0;
 		while (args[i][j])
 		{
 			if (args[i][j] < '0' || args[i][j] > '9')
-				return (1);
+				return (ERROR);
+			if (args[i][j] != '0')
+				zero_flag = 1;
 			j++;
 		}
+		if (!zero_flag)
+			return (ERROR);
 		i++;
 	}
-	return (0);
+	return (OK);
 }
 
 long int	get_timestamp(void)
@@ -83,61 +85,31 @@ long int	get_timestamp(void)
 	return ((t.tv_sec * 1000) + (t.tv_usec / 1000));
 }
 
-int	nbr_len(int n)
+int	ft_minmax_int(char	*str)
 {
-	int	len;
+	int			sign;
+	long int	nmb;
 
-	len = 0;
-	if (!n)
-		return (1);
-	while (n)
-	{
-		n /= 10;
-		++len;
-	}
-	return (len);
-}
-
-char	*putnbr_str(char *str, int n)
-{
-	int			end;
-	int			len;
-	long long	x;
-
-	x = n;
-	if (!x)
-	{
-		*str = '0';
-		return (str);
-	}
-	len = nbr_len(x);
-	end = len;
-	while (len--)
-	{
-		str[len] = x % 10 + '0';
-		x /= 10;
-	}
-	return (str + end);
-}
-
-void	putstr_str(char *str, char *text)
-{
-	while (*text)
-	{
-		*str = *text;
+	nmb = 0;
+	sign = 0;
+	while (*str == '\t' || *str == '\n'
+		|| *str == '\v' || *str == '\f'
+		|| *str == '\r' || *str == ' ')
 		++str;
-		++text;
-	}
-	*str = '\n';
-	str++;
-	*str = '\0';
-}
-
-void	putstr_fd(char *s, int fd)
-{
-	if (s)
+	if (*str == '-')
 	{
-		while (*s)
-			write(fd, s++, 1);
+		sign = 1;
+		++str;
 	}
+	else if (*str == '+')
+		++str;
+	while (*str >= '0' && *str <= '9')
+	{
+		nmb += *str - 48;
+		if ((nmb > INT_MAX && !sign) || (-nmb < INT_MIN && sign))
+			return (ERROR);
+		nmb *= 10;
+		++str;
+	}
+	return (OK);
 }
