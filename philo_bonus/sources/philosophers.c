@@ -6,7 +6,7 @@
 /*   By: ndillon <ndillon@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/29 17:27:37 by ndillon           #+#    #+#             */
-/*   Updated: 2022/04/17 05:43:06 by ndillon          ###   ########.fr       */
+/*   Updated: 2022/04/17 06:27:17 by ndillon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,19 @@ int	error(const char *err_msg)
 		write(2, err_msg++, 1);
 	write(2, "\n", 1);
 	return (ERROR);
+}
+
+void	*meal_checker(void *arg)
+{
+	int				i;
+	t_philos_info	*philos;
+
+	philos = arg;
+	while (!philos->death)
+	{
+		if (philos->meals)
+	}
+	return (NULL);
 }
 
 int	main(int argc, char **argv)
@@ -36,7 +49,7 @@ int	main(int argc, char **argv)
 	sem_meal_name = "/philo_sem_meals";
 	forks = sem_open(sem_forks_name, O_CREAT, 0644, 1);
 	if (argc == 6)
-	meals = sem_open(sem_meal_name, O_CREAT, 0644, 1);
+		meals = sem_open(sem_meal_name, O_CREAT, 0644, 1);
 	philos = initialization(argc, argv, forks);
 	if (!philos)
 	{
