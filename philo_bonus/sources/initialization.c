@@ -6,38 +6,37 @@
 /*   By: ndillon <ndillon@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/29 17:26:19 by ndillon           #+#    #+#             */
-/*   Updated: 2022/04/17 03:52:30 by ndillon          ###   ########.fr       */
+/*   Updated: 2022/04/18 15:41:15 by ndillon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../philosophers.h"
 
-pid_t	*process_create(t_philos_info *philos)
+int	process_create(t_philos_info *philos)
 {
 	int		i;
-	pid_t	*pid;
 
-	pid = (pid_t *)malloc(philos->number_of_philosophers * sizeof(pid_t));
+	philos->pid = (pid_t *)malloc(philos->number_of_philosophers
+			* sizeof(pid_t));
 	i = 0;
 	while (i < philos->number_of_philosophers)
 	{
-		pid[i] = fork();
-		if (pid[i] < 0)
+		philos->pid[i] = fork();
+		if (philos->pid[i] < 0)
 		{
 			while (i >= 0)
-				kill(pid[i--], SIGKILL);
-			free(pid);
-			return (1);
+				kill(philos->pid[i--], SIGKILL);
+			free(philos->pid);
+			return (ERROR);
 		}
-		else if (pid[i] == 0)
-			start_routine(philos);
+		else if (philos->pid[i] == 0)
+			start_routine(philos, i);
 		i++;
 	}
-	if (pid[0] > 0)
-		return (pid);
+	return (OK);
 }
 
-void	initialization_philos(t_philos_info *philos, t_c_info *c_info)
+void	initialization_philos(t_philos_info *philos)
 {
 	int	i;
 
@@ -50,28 +49,55 @@ void	initialization_philos(t_philos_info *philos, t_c_info *c_info)
 		philos->philo[i]->id = i + 1;
 		philos->philo[i]->meal_count = 0;
 		philos->philo[i]->last_meal = 0;
-		philos->philo[i]->c_info = c_info;
+		cummon_info_init(philos, philos->philo[i]);
 		i++;
 	}
 }
 
-t_c_info	*cummon_info_init(t_philos_info *philos, sem_t *semaphore)
+void	cummon_info_init(t_philos_info *philos, t_philo *philo)
 {
-	t_c_info	*c_info;
-
-	c_info = (t_c_info *)malloc(sizeof(t_c_info));
-	c_info->time_to_die = philos->time_to_die;
-	c_info->time_to_eat = philos->time_to_eat;
-	c_info->time_to_sleep = philos->time_to_sleep;
-	c_info->time = get_timestamp();
-	c_info->semaphore = semaphore;
-	return (c_info);
+	philo->c_info.time_to_die = philos->time_to_die;
+	philo->c_info.time_to_eat = philos->time_to_eat;
+	philo->c_info.time_to_sleep = philos->time_to_sleep;
+	philo->c_info.is_endless = philos->is_endless;
+	philo->c_info.time = get_timestamp();
+	philo->c_info.sem_forks = philos->sem_forks;
+	philo->c_info.sem_print = philos->sem_print;
+	philo->c_info.sem_meals = philos->sem_meals;
 }
 
-t_philos_info	*initialization(int argc, char **argv, sem_t *semaphore)
+int	create_sems(t_philos_info *philos)
+{
+	philos->sem_forks = NULL;
+	philos->sem_print = NULL;
+	philos->sem_meals = NULL;
+	if (philos->is_endless)
+	{
+		sem_unlink(SEM_MEAL);
+		philos->sem_meals = sem_open(SEM_MEAL, O_CREAT, 0644, 0);
+	}
+	sem_unlink(SEM_FORK);
+	sem_unlink(SEM_PRINT);
+	philos->sem_forks = sem_open(SEM_FORK, O_CREAT, 0644,
+			philos->number_of_philosophers);
+	philos->sem_print = sem_open(SEM_PRINT, O_CREAT, 0644, 1);
+	if (!philos->sem_forks || !philos->sem_print
+		|| (philos->is_endless && !philos->sem_meals))
+	{
+		sem_close(philos->sem_forks);
+		sem_close(philos->sem_print);
+		sem_close(philos->sem_meals);
+		sem_unlink(SEM_FORK);
+		sem_unlink(SEM_PRINT);
+		sem_unlink(SEM_MEAL);
+		return (ERROR);
+	}
+	return (OK);
+}
+
+t_philos_info	*initialization(int argc, char **argv)
 {
 	t_philos_info	*philos;
-	pid_t			*pid;
 
 	philos = (t_philos_info *)malloc(sizeof(t_philos_info));
 	philos->number_of_philosophers = ft_atoi(argv[1]);
@@ -82,11 +108,15 @@ t_philos_info	*initialization(int argc, char **argv, sem_t *semaphore)
 		philos->is_endless = ft_atoi(argv[5]);
 	else
 		philos->is_endless = 0;
-	initialization_philos(philos, cummon_info_init(philos, semaphore));
-	pid = process_create(philos);
-	if (!pid)
+	if (create_sems(philos))
 	{
-		free_all(philos);
+		free(philos);
+		return (NULL);
+	}
+	initialization_philos(philos);
+	if (process_create(philos))
+	{
+		free_all(philos, 0, 1);
 		return (NULL);
 	}
 	return (philos);

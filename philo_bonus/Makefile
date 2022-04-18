@@ -3,7 +3,7 @@ INC = .
 SRC = ./sources/
 OBJ = ./obj/
 C = gcc
-CFLAGS = -Wall -Wextra -Werror
+CFLAGS = -g -Wall -Wextra -Werror
 INCLUDES = philosophers.h
 
 NAME = philo

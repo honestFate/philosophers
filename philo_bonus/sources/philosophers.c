@@ -6,7 +6,7 @@
 /*   By: ndillon <ndillon@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/29 17:27:37 by ndillon           #+#    #+#             */
-/*   Updated: 2022/04/17 06:27:17 by ndillon          ###   ########.fr       */
+/*   Updated: 2022/04/18 15:41:38 by ndillon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,53 +20,31 @@ int	error(const char *err_msg)
 	return (ERROR);
 }
 
-void	*meal_checker(void *arg)
-{
-	int				i;
-	t_philos_info	*philos;
-
-	philos = arg;
-	while (!philos->death)
-	{
-		if (philos->meals)
-	}
-	return (NULL);
-}
-
 int	main(int argc, char **argv)
 {
-	int				status;
-	char			*sem_forks_name;
-	char			*sem_meal_name;
-	sem_t			*forks;
-	sem_t			*meals;
 	t_philos_info	*philos;
-	pthread_t		meal_cheak_thread;
-	
+	int				status;
+	int				pid;
+
 	if (argc < 5 || argc > 6 || arg_parser(argv))
 		return (error("INVALID ARGUMENTS"));
-	sem_forks_name = "/philo_sem_forks";
-	sem_meal_name = "/philo_sem_meals";
-	forks = sem_open(sem_forks_name, O_CREAT, 0644, 1);
-	if (argc == 6)
-		meals = sem_open(sem_meal_name, O_CREAT, 0644, 1);
-	philos = initialization(argc, argv, forks);
+	philos = initialization(argc, argv);
 	if (!philos)
-	{
-		sem_close(forks);
-		sem_unlink(sem_forks_name);
 		return (error("INITIALIZATION ERR"));
-	}
 	if (argc == 6)
 	{
-		pthread_create(&meal_cheak_thread, NULL, meal_checker, philos);
-		pthread_detach(&meal_cheak_thread);
+		pid = meal_checker(philos);
+		if (pid < 0)
+		{
+			free_all(philos, 1, 1);
+			return (1);
+		}
+		if (pid == 0)
+			return (0);
 	}
 	waitpid(-1, &status, WUNTRACED);
-	printf("returned status - %d\n", status);
-	philo_start_checker(philos);
-	free_all(philos);
-	sem_close(forks);
-	sem_unlink(sem_forks_name);
+	if (status)
+		error("PROCESS EXIT WITH ERROR");
+	free_all(philos, 1, 1);
 	return (0);
 }
